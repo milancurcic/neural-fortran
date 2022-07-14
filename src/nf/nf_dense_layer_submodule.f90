@@ -43,19 +43,22 @@ contains
   end subroutine forward
 
 
-  pure module function predict(self, input) result(output)
-    class(dense_layer), intent(in) :: self
+  pure module subroutine predict(self, input)
+    class(dense_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    real :: output(self % output_size, size(input, dim=2))
     integer :: n
 
+    if (.not. allocated(self % batch_output)) then
+      allocate(self % batch_output(self % output_size, size(input, dim=2)))
+    end if
+
     do concurrent(n = 1:size(input, dim=2))
-      output(:,n) = self % activation( &
+      self % batch_output(:,n) = self % activation( &
         matmul(input(:,n), self % weights) + self % biases &
       )
     end do
 
-  end function predict
+  end subroutine predict
 
 
   module subroutine init(self, input_shape)

@@ -23,6 +23,7 @@ module nf_dense_layer
     real, allocatable :: biases(:)
     real, allocatable :: z(:) ! matmul(x, w) + b
     real, allocatable :: output(:) ! activation(z)
+    real, allocatable :: batch_output(:,:) ! to store output in batch inference
     real, allocatable :: gradient(:) ! matmul(w, db)
     real, allocatable :: dw(:,:) ! weight gradients
     real, allocatable :: db(:) ! bias gradients
@@ -85,15 +86,13 @@ module nf_dense_layer
         !! Shape of the input layer
     end subroutine init
 
-    pure module function predict(self, input) result(output)
+    pure module subroutine predict(self, input)
       !! Propagate forward the layer without storing the state.
-      class(dense_layer), intent(in) :: self
+      class(dense_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: input(:,:)
         !! Input from the previous layer; second dimension is the batch
-      real :: output(self % output_size, size(input, dim=2))
-        !! Output of the layer; second dimension is the batch
-    end function predict
+    end subroutine predict
 
     module subroutine update(self, learning_rate)
       !! Update the weights and biases.
