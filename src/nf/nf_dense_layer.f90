@@ -32,6 +32,7 @@ module nf_dense_layer
     procedure :: backward
     procedure :: forward
     procedure :: init
+    procedure :: predict
     procedure :: update
 
   end type dense_layer
@@ -83,6 +84,16 @@ module nf_dense_layer
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
     end subroutine init
+
+    pure module function predict(self, input) result(output)
+      !! Propagate forward the layer without storing the state.
+      class(dense_layer), intent(in) :: self
+        !! Dense layer instance
+      real, intent(in) :: input(:,:)
+        !! Input from the previous layer; second dimension is the batch
+      real :: output(self % output_size, size(input, dim=2))
+        !! Output of the layer; second dimension is the batch
+    end function predict
 
     module subroutine update(self, learning_rate)
       !! Update the weights and biases.
