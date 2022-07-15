@@ -335,23 +335,54 @@ contains
 
     batch: do concurrent(i = 1:batch_size)
 
-    call self % forward(input(:,:,:,i))
+      call self % forward(input(:,:,:,i))
 
-    select type(output_layer => self % layers(num_layers) % p)
-      type is(conv2d_layer)
-        !FIXME flatten the result for now; find a better solution
-        res(:,i) = pack(output_layer % output, .true.)
-      type is(dense_layer)
-        res(:,i) = output_layer % output
-      type is(flatten_layer)
-        res(:,i) = output_layer % output
-      class default
-        error stop 'network % output not implemented for this output layer'
-    end select
+      select type(output_layer => self % layers(num_layers) % p)
+        type is(conv2d_layer)
+          !FIXME flatten the result for now; find a better solution
+          res(:,i) = pack(output_layer % output, .true.)
+        type is(dense_layer)
+          res(:,i) = output_layer % output
+        type is(flatten_layer)
+          res(:,i) = output_layer % output
+        class default
+          error stop 'network % output not implemented for this output layer'
+      end select
 
     end do batch
 
   end function output_batch_3d
+
+
+  module function predict_1d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:)
+    real, allocatable :: res(:,:)
+    integer :: n, batch_size, num_layers, output_size
+
+    num_layers = size(self % layers)
+    batch_size = size(input, dim=rank(input))
+    output_size = product(self % layers(num_layers) % layer_shape)
+
+    allocate(res(output_size, batch_size))
+
+    ! Set the input array into the input layer
+    select type(input_layer => self % layers(1) % p); type is(input1d_layer)
+      call input_layer % set(input)
+    end select
+
+    do n = 2, num_layers
+      call self % layers(n) % predict(self % layers(n - 1))
+    end do
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % batch_output
+      class default
+        error stop 'network % predict not implemented for this output layer'
+    end select
+
+  end function predict_1d
 
 
   module subroutine print_info(self)

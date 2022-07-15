@@ -27,6 +27,7 @@ module nf_layer
     procedure :: backward
     procedure :: forward
     procedure :: init
+    procedure :: predict
     procedure :: print_info
     procedure :: update
 
@@ -90,6 +91,15 @@ module nf_layer
       class(layer), intent(in) :: input
         !! Input layer instance
     end subroutine init
+
+    pure module subroutine predict(self, input)
+      !! Apply a forward pass on the layer for a batch of inputs,
+      !! without storing the state.
+      class(layer), intent(in out) :: self
+        !! Layer instance
+      class(layer), intent(in) :: input
+        !! Input layer instance
+    end subroutine predict
 
     impure elemental module subroutine print_info(self)
       !! Prints a summary information about this layer to the screen.

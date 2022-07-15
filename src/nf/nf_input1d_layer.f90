@@ -10,10 +10,19 @@ module nf_input1d_layer
   public :: input1d_layer
 
   type, extends(base_layer) :: input1d_layer
+
     real, allocatable :: output(:)
+    real, allocatable :: batch_output(:,:)
+
   contains
+
     procedure :: init
-    procedure :: set
+
+    procedure, private :: set_sample
+    procedure, private :: set_batch
+
+    generic :: set => set_sample, set_batch
+
   end type input1d_layer
 
   interface input1d_layer
@@ -27,6 +36,26 @@ module nf_input1d_layer
     end function input1d_layer_cons
   end interface input1d_layer
 
+  interface set
+
+    pure module subroutine set_sample(self, values)
+      !! Set values of one 1-d sample on this layer.
+      class(input1d_layer), intent(in out) :: self
+        !! Layer instance
+      real, intent(in) :: values(:)
+        !! Values to set
+    end subroutine set_sample
+
+    pure module subroutine set_batch(self, values)
+      !! Set values of a batch of 1-d samples on this layer.
+      class(input1d_layer), intent(in out) :: self
+        !! Layer instance
+      real, intent(in) :: values(:,:)
+        !! Values to set; last dimension is the batch
+    end subroutine set_batch
+
+  end interface set
+
   interface
 
     module subroutine init(self, input_shape)
@@ -36,14 +65,6 @@ module nf_input1d_layer
       class(input1d_layer), intent(in out) :: self
       integer, intent(in) :: input_shape(:)
     end subroutine init
-
-    pure module subroutine set(self, values)
-      !! Set values on this layer.
-      class(input1d_layer), intent(in out) :: self
-        !! Layer instance
-      real, intent(in) :: values(:)
-        !! Values to set
-    end subroutine set
 
   end interface
 

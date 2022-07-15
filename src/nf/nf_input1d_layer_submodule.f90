@@ -14,10 +14,16 @@ contains
     integer, intent(in) :: input_shape(:)
   end subroutine init
 
-  pure module subroutine set(self, values)
+  pure module subroutine set_sample(self, values)
     class(input1d_layer), intent(in out) :: self
     real, intent(in) :: values(:)
     self % output = values
-  end subroutine set
+  end subroutine set_sample
+
+  pure module subroutine set_batch(self, values)
+    class(input1d_layer), intent(in out) :: self
+    real, intent(in) :: values(:,:)
+    self % batch_output = values
+  end subroutine set_batch
 
 end submodule nf_input1d_layer_submodule
